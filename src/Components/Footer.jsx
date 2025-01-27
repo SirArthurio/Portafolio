@@ -14,7 +14,7 @@ export const Footer = () => {
     <footer>
     
       <div className="fixed bottom-0 left-0 right-0 p-4 text-sm font-light">
-        <div className="max-w-4xl mx-auto flex justify-between">
+        <div className="max-w-4xl mx-auto flex justify-between text-white">
           <span>System Version 1.0</span>
           <span className="animate-pulse">Connection Stable</span>
         </div>

@@ -1,68 +1,88 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { CiMenuBurger } from "react-icons/ci";
-import { IoCloseOutline } from "react-icons/io5";
+import { useState,useRef,useEffect } from "react";
+import { Menu } from "lucide-react";
+
 
 export const Navbar = () => {
-  const [selectedMenu, setSelectedMenu] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Controla la visibilidad del menú en pantallas pequeñas
-  const navigate = useNavigate();
+  const [navOpen, setNavOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const [glitchText, setGlitchText] = useState(false);
+ 
+  const observerRef = useRef(null);
 
-  const menuItems = [
-    { name: "Inicio", patch: "/Portafolio" },
-    { name: "Sobre mi", patch: "/SobreMi" },
-    { name: "Proyectos", patch: "/Proyectos" },
+  useEffect(() => {
+    const glitchInterval = setInterval(() => {
+      setGlitchText(true);
+      setTimeout(() => setGlitchText(false), 200);
+    }, 5000);
+
+   
+
+    return () => {
+      clearInterval(glitchInterval);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+  const navItems = [
+    "experiencia",
+    "proyectos",
+    "tecnologias",
+    "sobre-mi",
+    "contacto",
   ];
+  observerRef.current = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
 
-  const handleMenuClick = (patch) => {
-    setSelectedMenu(patch);
-    setIsMenuOpen(false);
-    navigate(patch);
-  };
-
+  document.querySelectorAll("section[id]").forEach((section) => {
+    observerRef.current.observe(section);
+  });
   return (
-    <div className="bg-[#F5F5DC] relative">
-     
-      <div className="sm:hidden flex justify-between items-center px-4 py-2 border-b border-gray-400">
-        <h1 className="text-lg font-bold">Luis</h1>
-  
+    <nav className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
+      <div className="bg-[#2b2b2b]/90 backdrop-blur-sm border border-[#e2d9bc]/20 rounded-full px-6 py-3 flex items-center justify-between">
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 rounded-md bg-gray-200 hover:bg-gray-300 focus:outline-none"
+          className="text-[#e2d9bc] md:hidden"
+          onClick={() => setNavOpen((prev) => !prev)}
+          aria-label="Toggle Navigation"
         >
-          {isMenuOpen ? <IoCloseOutline /> : <CiMenuBurger />}
+          <Menu className="w-6 h-6" />
         </button>
-      </div>
-  
-     
-      {isMenuOpen && (
+
         <div
-          className="fixed inset-0 bg-black/50 z-30"
-          onClick={() => setIsMenuOpen(false)} 
-        ></div>
-      )}
-  
-      <nav
-        className={`fixed sm:relative top-0 left-0 sm:static w-full bg-[#F5F5DC] sm:bg-transparent z-40 transform ${
-          isMenuOpen ? "translate-y-0" : "-translate-y-full"
-        } transition-transform duration-300 sm:transition-none sm:translate-y-0`}
-      >
-        <div className="flex flex-col sm:flex-row sm:space-x-4 w-full sm:border-b sm:border-gray-400 text-gray-600">
-          {menuItems.map((item) => (
-            <button
-              key={item.name}
-              className={`flex-grow rounded-lg p-2 m-1 text-center ${
-                selectedMenu === item.patch
-                  ? "border-b-2 border-amber-950 rounded-none"
-                  : "hover:bg-[#252525] hover:text-white"
+          className={`flex-col md:flex-row gap-6 md:gap-6 md:flex transition-all duration-300 md:static absolute top-full md:top-0 left-0 right-0 md:translate-x-0 ${
+            navOpen ? "flex" : "hidden"
+          } bg-[#2b2b2b] md:bg-transparent p-4 md:p-0 rounded-lg md:rounded-none`}
+        >
+          {navItems.map((item) => (
+            <a
+              key={item}
+              href={`#${item}`}
+              className={`hover:text-[#f0e6d2] transition-colors relative group ${
+                activeSection === item ? "text-[#f0e6d2]" : ""
               }`}
-              onClick={() => handleMenuClick(item.patch)}
+              onClick={() => setNavOpen(false)}
             >
-              <Link to={item.patch}>{item.name}</Link>
-            </button>
+              {item.charAt(0).toUpperCase() + item.slice(1)}
+              <span
+                className={`absolute -bottom-1 left-0 w-full h-0.5 bg-[#f0e6d2] transition-all ${
+                  activeSection === item
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+              ></span>
+            </a>
           ))}
         </div>
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
-}  
+};
